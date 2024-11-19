@@ -1,0 +1,76 @@
+import React, { useState, useEffect } from 'react';
+
+const VoiceTranslator = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [chineseText, setChineseText] = useState('');
+  const [englishText, setEnglishText] = useState('');
+  const [recognition, setRecognition] = useState(null);
+
+  useEffect(() => {
+    if (window.webkitSpeechRecognition) {
+      const recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = true;
+      
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('');
+        setChineseText(transcript);
+        simulateTranslation(transcript);
+      };
+
+      setRecognition(recognition);
+    }
+  }, []);
+
+  const simulateTranslation = (text) => {
+    const mockTranslations = {
+      '你好': 'Hello',
+      '早上好': 'Good morning',
+      '晚上好': 'Good evening',
+      '谢谢': 'Thank you',
+      '我爱你': 'I love you',
+      '再见': 'Goodbye'
+    };
+    
+    setEnglishText(mockTranslations[text] || 'Translation in progress...');
+  };
+
+  const startListening = () => {
+    if (recognition) {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognition) {
+      recognition.stop();
+      setIsListening(false);
+    }
+  };
+
+  const speakText = (text, lang) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handlePlayAll = () => {
+    if (englishText) {
+      speakText(englishText, 'en-US');
+      setTimeout(() => {
+        speakText(chineseText, 'zh-CN');
+      }, 1500);
+    }
+  };
+
+  const buttonStyle = {
+    padding: '10px 20px',
+    margin: '5px',
+    borderRadius: '5px',
+    border: 'none',
+    cursor: 'pointer',
+    backgroundColor: isListening ? '#ff4444' : '#4CAF50
